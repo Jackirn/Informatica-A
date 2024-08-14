@@ -1,0 +1,387 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\title{INFORMATICA A}
+\author{Giacomo Kirn}   
+\date{Luglio 2021}
+\makeindex
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{Introduzione}
+
+\subsection{Librerie utili}
+\begin{itemize}
+    \item \texttt{math.h}: contiene le funzioni matematiche più utili, valore assoluto (\texttt{abs}), \texttt{cos}, \texttt{tan}, \texttt{exp}, \texttt{pow}.
+    \item \texttt{time.h}: accede all'orologio di sistema, \texttt{srand(time(0)); r=rand();} (genera un numero a caso tra 0 a un massimo), con \texttt{time(0)} ho i millisecondi esatti di distanza da un certo tempo 0 ed è completamente casuale (se voglio un numero a caso tra 0 a 10 faccio \texttt{c=r\%10;}).
+    \item \texttt{limits.h}: si ha a disposizione \texttt{INT\_MIN} e \texttt{INT\_MAX} che mi dice il numero più grosso che posso scrivere.
+    \item \texttt{string.h}: per acquisire frasi per le stringhe usando \texttt{gets(stdin)}.
+    \item \texttt{stdlib.h}: per la memoria dinamica.
+\end{itemize}
+
+\subsection{Struttura calcolatore}
+I sistemi informatici, ispirati dalla macchina di Von Neumann, sono formati da hardware e software. In generale i sistemi informatici sono costituiti da:
+\begin{itemize}
+    \item \textbf{Unità di elaborazione (CPU)} che esegue le istruzioni e permette ai programmi di essere eseguiti, inoltre gestisce l’intero funzionamento della macchina con il sistema operativo;
+    \item \textbf{Memoria centrale (MM, RAM)} che contiene i dati e le istruzioni che devono essere eseguite;
+    \item \textbf{Bus di sistema} (insieme di connessioni fisiche) che collega la CPU e la MM tra di loro e con qualsiasi altra componente accessoria rispetto al funzionamento essenziale (la tastiera ecc.) che sono le interfacce delle periferiche (tastiera, schermo mouse, hard disk ecc.).
+\end{itemize}
+Memoria centrale: una tabella con un numero di colonne fissato, che sono i bit che stanno su una riga (possono essere h bit: 16, 32, 64…), si legge una riga alla volta; il numero della riga è l’indice di riga, che è l’indirizzo di una riga (è una sequenza di k bit, posso avere 2\^k indirizzi).
+Ci sono diversi tipi di memoria centrale: 
+\begin{itemize}
+    \item \textbf{RAM} (random access memory), memoria volatile, celle che perdono il loro valore quando si toglie tensione, quando spengo il computer tolgo tensione alla RAM e i dati dentro vengono copiati su un file sul disco per poi essere ripresi quando viene ridata tensione;
+    \item \textbf{ROM}, i dati fondamentali per avviare il computer, è una memoria permanente, carica in memoria il sistema operativo quando viene acceso, non si perde quando il computer è spento;
+    \item \textbf{EPROM} che permette di programmare la ROM.
+\end{itemize}
+l’HDD (hard disk) è memoria permanente, non centrale poiché non è in esecuzione, non si interfaccia direttamente con la CPU, non ci sarà mai un programma che viene eseguito dentro lì.
+\textbf{CPU}: il cuore del sistema informatico, quello che esegue e coordina la vita del calcolatore; ha tre elementi principali:
+\begin{itemize}
+    \item \textbf{CU (control unit)} che esegue le istruzioni, le prende, le decodifica e le esegue;
+    \item \textbf{ALU (unità aritmetico logica)} che esegue le operazioni aritmetiche;
+    \item \textbf{CLOCK} che scandisce le esecuzioni e sincronizzazioni.
+\end{itemize}
+c’è però bisogno di tanti \textbf{REGISTRI} (memorie interne alla CPU) dove io posso scrivere i dati, (risultati delle operazioni ecc.), questi registri sono divisi in:
+\begin{itemize}
+    \item \textbf{DR (data register)} che contiene una parola e ha dimensione della parola (h bit);
+    \item \textbf{AR (address register)} che contiene gli indirizzi (k bit);
+    \item \textbf{Registro istruzione corrente (CIR)}, una riga di memoria e contiene un’istruzione (h bit);
+    \item \textbf{Registro contatore di programma (PC)}, tiene traccia dell’indirizzo che corrisponde all’istruzione appena eseguita, fondamentale per la sequenzialità (k bit);
+    \item \textbf{Registro interruzione (INTR)}, su stato periferiche;
+    \item \textbf{Registro di stato (SR)}, contiene il bit di overflow o di riporto, informazioni sui risultati ALU.
+\end{itemize}
+Per risolvere problemi di temperatura e di surriscaldamento si è optato per le installazioni di più CPU.
+\textbf{Bus di sistema}: connessioni fisiche per il transito dei dati. Esistono diversi tipi di bus:
+\begin{itemize}
+    \item \textbf{Bus dati}, trasmette dati (h bit);
+    \item \textbf{Bus indirizzi} (k bit);
+    \item \textbf{Bus controlli} che trasmette istruzioni.
+\end{itemize}
+Nei bus esistono dei ruoli diversi, la CPU e la RAM o periferica e in queste connessioni c’è chi comanda, \textbf{master} (CPU) e chi obbedisce, \textbf{slave} (periferica).
+\textbf{Periferiche}: hanno tanti registri con le informazioni:
+\begin{itemize}
+    \item \textbf{PDR (peripheral data register)}, dati;
+    \item \textbf{PCR (peripheral command register)}, comandi;
+    \item \textbf{PSR (peripheral state register)}, stato.
+\end{itemize}
+Le istruzioni (h=16 bit) devono essere codificate in binario e inserite nella MM, e sono costituite da: codice operativo (primi 4 bit) ‘00’ e indirizzo operando (ultimi 10 bit); il codice operativo (obbligatorio) ci dice l’operazione da seguire e gli operandi (facoltativo) indica i dati da utilizzare o l’indirizzo (k=10 bit).
+Le variabili sono codificate in binario e salvate in parole nella MM, lo spazio a esse riservato dev’essere ben definito e allocato ‘sotto’ le istruzioni del programma, il programma deve conoscere gli indirizzi delle variabili.
+Un programma in memoria è diviso in una prima parte di istruzioni e una seconda di variabili, il programma parte dalla prima istruzione: per prima cosa avviene il \textbf{FETCH}, acquisizione dell’istruzione da parte della MM: trasferimento da PC a AR dell’indirizzo della cella contenente l’istruzione, lettura dalla MM della cella dell’indirizzo dato dalla AR (contenuto trasferito sul DR perchè l’istruzione è un dato), sposta da DR a CIR, incrementa PC (definisce la prossima istruzione); poi avviene la \textbf{DECODIFICA}, la CPU capisce cosa deve fare e infine l’\textbf{ESECUZIONE}.
+
+\subsection{Memoria}
+La memoria di un PC è divisa in celle e ogni cella contiene un dato che può essere numerico, un carattere o una stringa (sequenze di caratteri in celle adiacenti). Approssimando non c’è limite al numero delle celle o al valore dei numeri che esse contengono.
+Quando dico \texttt{int 'nomevariabile'} una fetta della memoria viene chiamata \texttt{'nomevariabile'}.
+Quando scrivo \texttt{'&nomevariabile'}, intendo l’indirizzo di quell'area di memoria.
+
+\subsection{Variabili}
+Le variabili corrispondono a locazioni di memoria; ogni variabile ha un nome (identificatore), un tipo (insieme di operazioni e valori ammissibili), una dimensione, un indirizzo (individua la cella) e un valore. La lettura non modifica i valori delle variabili, inserendo un nuovo valore in una variabile si distrugge il valore vecchio.
+Le variabili rappresentano i dati su cui lavora il programma, sono denotate mediante identificatori, ogni variabile ha il suo e durante l’esecuzione hanno un valore ben definito, perciò devono sempre essere inizializzate.
+La variabile allocata segue il complemento a 2 (se ho una CPU a 8 bit, con il complemento si va da -2\^7 a (2\^7)-1, quindi da -128 a 127, perchè il complemento a 2 ha sia i numeri negativi che positivi).
+Se davanti a \texttt{int} metto \texttt{unsigned} memorizza solo i valori positivi.
+
+\subsection{Identificatori}
+Nomi delle variabili, sequenza di cifre, lettere o underscore, sono sensibili al maiuscolo e il primo carattere dev’essere una lettera. Ci sono parole chiave come \texttt{int} o \texttt{return} che non possono essere usate come identificatori.
+
+\subsection{Codice binario}
+Si parla di overflow quando il risultato corretto dell’addizione eccede il potere di rappresentazione dei bit a disposizione.
+Si può avere overflow senza riporto perduto: da due addendi positivi si riceve un risultato negativo.
+Si può avere un riporto perduto senza overflow: un riporto perduto senza effetto collaterale (due addendi discordi generano un risultato positivo).
+Per la rappresentazione in virgola fissa devo ricordarmi solo la mantissa e l’esponente (29,16=0,2916*10\^2; 2916 è la mantissa e 2 è l’esponente).
+La virgola fissa è poco intelligente perché ti da un numero fisso di cifre per la parte intera e per la parte dopo la virgola centrando tutto intorno all’unità indipendentemente dalla grandezza del numero, cosa che non ha senso per i numeri grandi; sono più importanti le cifre significative, per questo si usa la virgola mobile: immaginare tutti i numeri come 0,’prima cifra diversa da zero’ per base elevato a esponente (234,4=0,2344*10\^3), mantissa è ciò che c’è dopo la virgola, ed esponente, così ho un tot di bit per la mantissa e un tot per l’esponente. L’effetto è che riesco a rappresentare con una densità maggiore i numeri vicino allo zero, in questo modo riesco a rappresentare numeri molto più grandi e piccoli rispetto a quelli che potrei rappresentare con la virgola fissa (ne concentro tanti intorno allo zero e ne prendo tanti lontani dallo zero) (con la virgola mobile ho il vantaggio che con gli stessi bit codifico un intervallo più vasto, più sparso lontano dallo zero e più concentrato e preciso vicino allo zero). L’unico effetto negativo è che alcune operazioni hanno dei rischi: dato che tengo solo n cifre significative e sommo un numero che non rientra in queste quella somma non ha nessun effetto, e se ripeto l’operazione un infinito numero di volte l’errore diventa grande e considerevole (sommo 1 un miliardo di volte, ho un errore grande).
+Perciò non valgono una serie di proprietà della matematica continua, il calcolatore segue la matematica discreta.
+
+\subsection{Codifica dei caratteri}
+I caratteri (lettere maiuscole, minuscole, simboli ecc.) vengono codificati con i bit: codifica ASCII (american standard computer interchange interface), si utilizzano 7 bit per rappresentare 128 caratteri (log in base 2 di 128). Ma perchè dato che le memorie dei primi calcolatori avevano 8 bit ne usano solo 7? perché i segnali devono essere trasmessi e quindi sporcati, allora si usa l’ottavo bit per il controllo: in ogni codificato il numero di 1 è pari o dispari, metto l’ultimo bit a 1 o 0 per rendere il numero di 1 pari (bit di parità), se c’è un errore di trasmissione e 1 bit arriva sbagliato mi accorgo che il numero di 1 è dispari e capisco che c’è un errore (l’errore è basso per cui è improbabile che ci siano 2 errori).
+La codifica ASCII codifica l’inglese, la lingua della Danimarca ha molti più caratteri e si usa ISO 8859, per le lingue neo latine.
+
+\subsection{Codifica suoni e immagini}
+Esistono vari modi per codificare il suono: wav (CD), mid, mp3, ra e altri, il formato mp3 ad esempio è un formato compresso che perde precisione.
+Ne esistono anche per le immagini: jpeg, gif, pcx, tiff…; il formato classico è RGB (red, blue, green), per il monitor, che emette la luce, i colori primari sono rosso blu e verde; tutti i monitor emettono luce rossa verde e blu e ottengono tutti gli altri colori mischiando questi, la codifica RGB fa una matrice di tutti i pixel del monitor e per ognuno regola la quantità dei 3 colori (intensità da 0-255).
+E’ conveniente rappresentare l’immagine secondo codifiche che permettono di ridurre le dimensioni: codifiche \textbf{lossless} (permettono senza perdita di informazioni di comprimere l’immagine, per esempio non ripetendo il valore nelle aree costanti ma registrando la variazioni: gif, png); o codifiche \textbf{lossy}: perdita di informazione e qualità (jpeg, compresse a blocchi e ogni blocco ha meno dettagli dell’originale).
+I video invece combinano la codifica del suono e dell’immagine.
+
+In generale che siano caratteri numeri… i dati stanno in memoria che occupano spezzoni (parole) da 64 bit, una parola può essere usata per contenere una parola un numero o altro.
+
+\subsection{Assegnamento}
+\texttt{‘variabile’=’espressione’}, dove l’espressione può essere una costante, una variabile o una combinazione di espressione costruita mediante operatori aritmetici (\texttt{+-*/\%}, \texttt{\%} è il modulo che restituisce il resto della divisione intera). Se scrivo \texttt{w=’a’} vuol dire che alla variabile w è stato assegnato il carattere a, se scrivo \texttt{w=a} vuol dire che a w è stato assegnato il valore della variabile a. Per gli assegnamenti posso anche scrivere \texttt{x=x+1} (se \texttt{x=5}, \texttt{x=x+1=6}). \texttt{x=x+1=++x}, \texttt{x=x*5} si può dire \texttt{x*=5}, \texttt{x=x-1=- -x}, \texttt{x=x+7} si può dire \texttt{x+=7}.
+Quando faccio le divisioni il risultato è troncato (\texttt{13/5=2}).
+Si parla di pre-incremento quando faccio \texttt{++i}, prima incremento poi guardo cosa vale.
+Il post-incremento prima guardo cosa vale poi incremento.
+
+\subsection{Tipi di variabili}
+Ci sono diversi tipi di variabili: \texttt{int} (numeri interi), \texttt{char} (caratteri-ASCII), \texttt{float} (numeri con la virgola). Le variabili \texttt{float} hanno tot bit per mantissa e tot esponente, esistono i \texttt{double float} (doppio bit mantissa e doppio esponente), si parla di inizializzazione quando do un valore iniziale a una variabile (quando la dichiaro do subito un valore) posso usare il \texttt{const} che blocca il valore della variabile.
+Il C permette di fare cose del tipo: \texttt{int b, b=’a’}, che è controintuitivo.
+Nella \texttt{printf} si usa \texttt{\%d} (interi), \texttt{\%c} (caratteri), \texttt{\%f} (float), \texttt{\%lf} (double float), \texttt{\%s} (stringa) \texttt{\textbackslash n} (a capo), \texttt{\textbackslash t} (tabulazione, incolonnare), \texttt{\textbackslash a} (allarme), \texttt{\textbackslash} (escape, annulla il significato del successivo).
+Nella \texttt{scanf} devo mettere \texttt{\&}.
+Riassunto: \texttt{int}, utilizzano 1 parola, esistono gli \texttt{short int} e \texttt{long int}, oppure anche \texttt{signed} o \texttt{unsigned} (per \texttt{unsigned} gli interi diventano da 0 a il doppio, non più da meno n a più n ma solo o-2n); \texttt{float} o \texttt{double float} (i \texttt{float} 8 byte, i \texttt{double} 16 byte), lo spazio occupato in memoria però dipende dal compilatore; \texttt{char} rappresentati con ASCII, vale il minore (prima c’è l’alfabeto maiuscolo poi minuscolo).
+Quando sommo \texttt{int} e \texttt{float} si seguono le regole dei \texttt{float}. In generale quando si sommano due tipi diversi quello più piccolo in memoria subisce una conversione automatica (cast implicito); se io sommo \texttt{int} e \texttt{float} l’\texttt{int} viene convertito automaticamente in \texttt{float} (a volte queste conversioni generano un warning).
+Al posto di mettere \texttt{const int}… si può usare \texttt{\#define N 10} si mette in alto dopo le librerie, è meglio definire le costanti così perchè non si spreca la lettura di una cella della RAM (non va in giro a cercare variabili) [per tradizioni \texttt{const} maiuscole e variabili minuscole].
+
+\subsection{Huffman}
+Esiste l’Huffman coding tree che permette di sfruttare la sequenza relativa dei singoli caratteri per risparmiare spazio, attraverso il suo albero la codifica dei caratteri più utilizzati occupa uno spazio molto più ristretto rispetto ai caratteri meno utilizzati. Il problema di questa codifica è che se si perde una parte di codice di una parola ad esempio, si ha perso tutta la parola.
+[10 bit: 2\^10 possibili numeri (1000), 20 bit: 2\^20 (1 mln), 30 bit: 2\^30 (1 mld)].
+\newpage
+\section{Algoritmi e Strutture Dati}
+
+\subsubsection{Algoritmo}
+L’algoritmo è una sequenza precisa di operazioni, definite con precisione, che portano alla realizzazione di un compito (in un tempo finito). Le operazioni devono essere comprensibili ed eseguibili (da un esecutore).
+Il linguaggio con il quale scrivo l’algoritmo dev’essere caratterizzato dalla sequenzialità delle istruzioni, deve avere un costrutto condizionale e un costrutto iterativo, e inoltre dei foglietti in memoria dove posso scrivere dei valori.
+\begin{itemize}
+    \item \textbf{Sequenzialità}: ogni istruzione comincia quando quella prima termina, si eseguono tutte le istruzioni.
+    \item \textbf{Condizionale}: c’è un bivio, si arriva a un'istruzione in cui ci sono 2 opzioni ‘altrimenti’, eseguita una delle due si continua con le istruzioni dopo; c’è una condizione che viene valutata. per cui: \texttt{if (condizione con istruzioni a seguito se l’istruzione dell’if è vero) else (se l’if è falso continuo con l'istruzione dell’else)}.
+    \item \textbf{Iterativo}: serve per ripetere più volte la stessa istruzione, il flusso prosegue e se un’istruzione vera ripeto le operazioni. si parla di cicli (\texttt{while qualcosa è vero faccio una cosa, se l’istruzione nel while è falsa vado avanti: while (qualcosa) \{istruzioni\}}).
+\end{itemize}
+Si parla di correttezza quando l’algoritmo viene eseguito senza errori, mentre si parla di efficienza quando l’algoritmo usa le risorse a disposizione in modo minimale (o ragionevole).
+Un algoritmo si dice ricorsivo se continua a richiamare se stesso finchè non si arriva al caso base che interrompe l’algoritmo (ho un archivio e devo cercare una scheda, ho N schede, parto dalla scheda N/2, dal punto di vista alfabetico guardo se la scheda cercata è prima o dopo e così elimino metà archivio e continuo così finché non trovo la scheda desiderata).
+Esiste il ciclo \texttt{do-while}, scrivo il \texttt{do} con nelle graffe le istr e all’est il \texttt{while} con la condizione.
+\texttt{Switch}: si scrive \texttt{switch (var (solo int o char)) \{ case v1: istr1; break;...case vn:...\}} questo costrutto guarda il valore della variabile se è uno dei v salta a eseguire il codice subito dopo i \texttt{:}, appena trova \texttt{break} salta fuori dallo \texttt{switch} (per questo il \texttt{break} è importante.
+Il \texttt{break} si può anche usare per uscire da un ciclo (il ciclo corrente non da tutti insieme); c’è anche il \texttt{continue} che salta direttamente a verificare la condizione del ciclo (non sta a guardare quello che viene sotto ma fa ricominciare il ciclo).
+
+\subsection{Diagrammi di flusso}
+I diagrammi di flusso sono linguaggi semi-formali intelligibili solo all’essere umano, i linguaggi che può leggere anche la macchina sono i linguaggi di programmazione. Programmare è tradurre gli algoritmi da diagrammi di flusso a istruzioni che la macchina può capire e dettagliare in quanto noi umani possiamo ragionare a un livello molto alto, la macchina ha bisogno di istruzione molto compatte (in binario ad esempio). Per cui il programmatore deve essere in grado di ideare l’algoritmo e codificarlo in un programma (tradurre in linguaggio macchina).
+Il \texttt{FOR} si può usare in questo modo: \texttt{for (exp iniz; cond; exp incr) \{ \}} (per esempio nel \texttt{incr} posso mettere \texttt{i++}).
+
+\subsection{Algebra di Boole}
+E’ l’algebra della logica, si basa su operazioni logiche, le operazioni sono applicabili a operandi logici, operandi che possono assumere solo valore vero o falso (vero 1 bit, falso 0) e danno vita a espressioni booleane. Ci sono operatori relazionali e logici:
+\begin{itemize}
+    \item \textbf{Operatori relazionali}: \texttt{==, !=, <, >, <=, >=};
+    \item \textbf{Operatori logici}: \texttt{\&\&, !, ||} (esiste anche \texttt{XOR}, che è l’or esclusivo: o uno o l’altro ma non entrambi); quelli logici permettono di costruire operazioni composte. \texttt{||} e \texttt{\&\&} sono commutativi; le doppie negazioni si elidono (\texttt{!!}).
+\end{itemize}
+Ogni espressione può assumere solo due valori, posso quindi considerare tutti i possibili valori degli ingressi ad un'espressione booleana e calcolare i valori di output corrispondente; si può creare una tabella di verità che rappresenta tutti i valori che un’espressione composta può assumere al variare delle espressioni che la compongono:
+\begin{itemize}
+    \item \texttt{!} (not): se A falsa \texttt{!A} è vera.
+    \item \texttt{\&\&} (and): \texttt{A\&\&B} è vera se e solo se sia A che B sono vere.
+    \item \texttt{||} (or): \texttt{A||B} è vera se e solo se almeno una delle due è vera.
+\end{itemize}
+Le leggi di De Morgan illustrano come distribuire la negazione rispetto a \texttt{||} e \texttt{\&\&}:
+\texttt{!(a \&\& b) == !a || !b}
+\texttt{!(a || b) == !a \&\& !b}.
+Esistono regole di precedenza: prima \texttt{!} poi \texttt{\&\&} poi \texttt{||}.
+Se ho una condizione, e metto un insieme il programma considera vero sempre tranne quando inserisco uno 0.
+\newpage
+\section{Programmazione in C}
+
+\subsection{Struttura programma}
+C’è una prima parte dichiarativa, nella quale dichiaro gli elementi del programma (librerie, variabili ecc.) e una parte esecutiva, che contiene le istruzioni da eseguire: istruzioni che possono essere di assegnamento o strutture di controllo (condizionali, iterative o cicli) o istruzioni di input, output (\texttt{printf}, \texttt{scanf}). ci sono istruzioni semplici, che terminano con il \texttt{;} e istruzioni che si possono raggruppare e vengono raccolte in un blocco chiuso tra \texttt{\{\}}.
+Teorema di Bohm e Jacopini: tutti i programmi possono essere scritti in termini di 3 strutture di controllo: sequenza, istruzioni eseguite in un certo ordine; selezione, istruzioni che permettono di prendere strade diverse in base a una condizione; iterazione, istruzioni che permettono di ripetere una cosa fintanto che una condizione booleana rimane vera.
+
+\subsection{Stringhe o Array}
+Sequenza di caratteri, si indicano rinchiuse tra doppi apici \texttt{“ ”}.
+Sono una sequenza di foglietti della memoria, per cui sono un insieme di valori con un insieme di operazioni ad essi applicabili, è un tipo di variabile strutturata (quelle semplici sono \texttt{int}), e sono un insieme di variabili semplici (in C è possibile creare un tipo di variabile built-in, gli array sono user-defined).
+\begin{itemize}
+    \item [I] qualificatori di variabili sono \texttt{signed} (-2\^31 – 2\^31-1, scrive in CP2) e \texttt{unsigned} (0 – 2\^32-1) (si usano per \texttt{int} e \texttt{char}) e allocano lo stesso spazio; mentre i quantificatori sono \texttt{short} e \texttt{long} (si usano per \texttt{int} lo \texttt{short} e per \texttt{int} e \texttt{double} il \texttt{long}).
+\end{itemize}
+Le variabili strutturate possono essere omogenee o eterogenee, gli array sono omogenei, è una sequenza di variabili omogenee: posso dare un indice (un elemento precede un altro nella sequenza), le variabili sono tutte dello stesso tipo (omogenei), e si alloca in celle consecutive di memoria.
+Sintassi: \texttt{tipo nomeArray [dimensione];} (dimensione è un numero fisso noto a compile-time, non può essere una variabile e non può essere modificato durante l’esecuzione).
+Si può accedere ai singoli elementi dell’array mettendo nelle quadre il numero (\texttt{vet[0]}); ogni elemento è una variabile del tipo dell’array, per cui posso fare assegnamenti, operazioni logiche, aritmetiche e di I/O.
+Se scrivessi \texttt{int vet [300]; vet} (da solo) vuol dire: \texttt{vet == \&vet[0]} (indirizzo prima cella array) (si stampa l’indirizzo con \texttt{\%p}).
+Non posso mai dichiarare l’array senza dichiarare la dimensione (con la \texttt{\#define} si può mettere una variabile nella dimensione degli array dato che la dimensione dell’array è nota a priori).
+Ci sono dei vantaggi di sintassi compatta: \texttt{int n [5]=0} (vuol dire che tutti gli elementi sono inizializzati a 0); \texttt{int n [5]=\{13\}} (alla posizione 5 c’è il 13, le altre sono 0).
+Si possono usare espressioni come indici.
+Acquisizione: bisogna procedere elemento per elemento con la \texttt{scanf}.
+
+\subsection{Stringhe}
+Array di caratteri (alfanumerici, simboli, di comando), si codificano con l’ASCII esteso a 8 bit (256 caratteri). si dichiarano come gli array (\texttt{char luogo[dim]}).
+Per far si che durante l’acquisizione non prenda l’invio bisogna far pulire il buffering in ingresso attraverso \texttt{fflush(stdin)} oppure attraverso \texttt{scanf (“\%*c”)}.
+Attraverso la \texttt{scanf} o la \texttt{gets} si possono acquisire stringhe direttamente: \texttt{char str[10]; scanf(“\%s”, str); gets (str);} la \texttt{scanf} non ha bisogno di \texttt{\&} poichè \texttt{str} è già l’indirizzo di \texttt{str[0]}, la \texttt{scanf \%s} acquisisce solo fino al primo invio o spazio, se voglio acquisire una frase uso la libreria \texttt{string.h} (usando \texttt{gets(nomestringa)}, la \texttt{gets} termina con il primo invio, la \texttt{scanf} con il primo spazio o invio).
+Per le stringhe c’è un carattere speciale: \texttt{\textbackslash 0}, si mette al termine della parola, viene inserito automaticamente in memoria e ci dice le dimensioni effettive di una parola, è presente in modo che si stampino tutte le lettere fino al terminatore di stringhe.
+Esiste \texttt{strlen} per la lunghezza delle stringhe (sempre in \texttt{string.h}): \texttt{len1=strlen(str1)}.
+Esiste \texttt{strcmp} (\texttt{string.h}), restituisce 0 quando le due stringhe hanno la stessa lunghezza e stessi elementi nelle stesse posizione, altrimenti minore di 0 se S1 precede S2 (in ordine alfabetico) o maggiore se è vero il contrario: \texttt{cmpr=strcmp(S1, S2)}.
+
+\subsection{Matrici}
+Gli array a 1D realizzano i vettori, gli array a 2D realizzano le matrici, la dichiaro scrivendo ad esempio: \texttt{int a [20][30]} (alloco 20*30 elementi interi, 600 variabili distinti).
+Le matrici possono essere sommate solo se hanno la stessa dimensione (stesso numero righe e colonne); esiste il prodotto per uno scalare; esiste il prodotto riga per colonna: possibile solo se la prima matrice ha lo stesso numero di colonne del numero di righe della seconda. La trasposizione consiste nello scambiare gli elementi \texttt{a[i,j]} con gli elementi \texttt{a[j,i]}.
+
+\subsection{Struct}
+Tipi di dati strutturati (aggregazione di variabili), sono una collezione di variabili eterogenee (non ordinate e variabili diverse). si possono creare tipi user-defined (generate dall’utente). Sono una sorta di contenitore di variabili disomogenee più semplici, le variabili aggregate sono dette campi della struct.
+Sintassi: \texttt{struct \{ tipo1 Nomecampo1; … \} NomeStruct;} (si possono dichiarare più variabili dalla stessa struttura: più di un NomeStruct).
+Va nella parte dichiarativa del \texttt{main}.
+Per accedere ai campi si usa l’operatore dot (il punto): \texttt{Nomestruct.NomeCampo} (a questo punto tutta sta roba diventa una variabile del tipo del NomeCampo).
+Se ho due struct identiche si può fare \texttt{Nomestruct1=NomeStruct2} (i valori si assegnano da una struttura all’altra).
+
+\subsection{Typedef}
+Serve a definire un nuovo tipo.
+Sintassi: \texttt{typedef NomeTipo NomeNuovoTipo};
+Va messo al di fuori del \texttt{main}, così che all’interno del \texttt{main} posso usare il nuovo tipo; questa cosa ci permette di dare un significato al nuovo tipo.
+Posso fare il \texttt{typedef struct} anche (la \texttt{struct} è un tipo di dato).
+
+\subsection{Puntatori}
+Le variabili hanno un indirizzo grazie al quale si può accedere ad esse (in memoria una variabile può occupare una o più celle), l’indirizzo è l’indirizzo della locazione in memoria della cella in cui inizia una variabile (ogni cella al suo interno ha un valore); l’indirizzo di una variabile non muta durante l’esecuzione. Quando una variabile è a sinistra di un assegnamento si usa il suo indirizzo per modificare il suo valore, quando a destra si usa il valore al quale si accede tramite l’indirizzo.
+In C si può accedere agli indirizzi tramite \texttt{\&}.
+Si possono creare delle variabili, chiamate puntatori, che contengono l’indirizzo di un’altra variabile.
+In C i puntatori si distinguono in base al tipo della cella puntata, la loro sintassi infatti è: \texttt{int *punt;} (se non mettessi l’asterisco creerei una variabile normale).
+Se voglio assegnare a un puntatore l’indirizzo di una variabile dello stesso tipo: \texttt{punt=\&x;} se voglio sapere il valore delle variabili puntate tramite il puntatore si usa la dereferenziazione facendo: \texttt{*punt;} (\texttt{\&} è l’operatore di referenziazione).
+Questo sistema sarà utile quando non si sanno le variabili ma solo il loro indirizzo.
+I puntatori possono essere dichiarati con le altre variabili.
+Si possono fare i doppi puntatori (o tripli) che puntano a puntatori che puntano a un tipo dato.
+Il \texttt{NULL}: è una costante simbolica che rappresenta un valore speciale che può essere assegnato a un puntatore, significa che la variabile non punti a niente (di solito si impone che \texttt{NULL} rappresenti il valore 0). Se inizializzo a \texttt{NULL} un puntatore vuol dire che non punta a nessuna cella di memoria.
+Per il C si possono creare puntatori che non si sa ancora a cosa puntino usando il \texttt{void *} (in questo modo tutti i puntatori sono compatibili con puntatori di altri tipi).
+Al posto di scrivere \texttt{(*p).primoCampo=12;} si può scrivere \texttt{p->primoCampo=12;} (freccia con il meno e il maggiore).
+Esiste la \texttt{sizeof} che ci dice quanti byte in memoria occupa una cella (\texttt{sizeof()}).
+Sono permesse delle aritmetica dei puntatori: somma tra puntatori: se faccio \texttt{p=p+3} gli dico vai avanti di 3 (dimensione del tipo del puntatore), per cui se \texttt{p} è un \texttt{int p+3} avanza di 4 byte 3 volte (se è variabile indirizzo avanza di 8 byte 3 volte), infine quindi è come se facessi puntare al puntatore de \texttt{int} (o \texttt{char} o \texttt{float} o…) avanti. E’ utile per array e vettori: \texttt{v[n]; \&v[0]} è \texttt{v, \&v[3]} è \texttt{v+3}.
+Se ho due \texttt{punt} che puntano a due caselle dell’array e faccio la differenza ho la distanza in caselle tra le due.
+
+\subsection{Funzioni}
+Le funzioni servono per poter fare particolari diagrammi di flusso. Permettono di definire blocchi di istruzione che risolvono compiti di alto livello per poter scrivere programmi più leggibili. Le funzioni restituiscono qualcosa.
+Quindi in un diagramma di flusso è possibile sostituire dei blocchi che svolgono funzioni di basso livello con blocchi che ne svolgono di alto o viceversa (i blocchi ad alto livello rendono l’algoritmo più comprensibile). Praticamente sono sequenze di istruzioni che risolvono sottoproblemi (la sequenza può essere riutilizzata anche in altri programmi), alla fine ci troveremo senza dover occuparci di ogni singola istruzione, ma solo di blocchi concettuali che portano a compimento compiti intermedi (e scrivere istruzioni che le risolvono in un secondo blocco).
+In C una funzione è una sequenza di comandi che ha un nome, può essere invocata, può ricevere dei parametri che ne influenzano l’esecuzione e produce un valore risultato.
+Con le funzioni si può scrivere molto meno codice, possono essere riutilizzate, permettono di esprimere in modo sintetico operazioni complesse e si possono definire operazioni specifiche.
+Le funzioni stanno all’esterno del \texttt{main}:
+Sintassi: \texttt{void NomeFunzione () \{...\}}. Nel \texttt{main} metterei \texttt{NomeFunzione ();}. \texttt{Void} è una keyword e in questo caso si usa poiché la funzione non restituisce niente ma stampa e basta (se volessi fare altro non potrei usare il \texttt{void}).
+Se volessi includere anche l’acquisizione di un \texttt{char} (ad esempio) non posso più mettere \texttt{void} ma \texttt{char NomeFunzione () \{... return NomeChar\}} (la funzione deve restituire un \texttt{char}); a questo punto nel \texttt{main} devo mettere \texttt{char1(variabile)=NomeFunzione();}.
+Nelle parentesi prima delle graffe posso far tenere presente alla funzione dei valori: \texttt{int NomeF (int min, int max) \{...\}}.
+Sintassi: \texttt{TipoRestituito NomeFunzione (lista argomenti) \{VarLocali; CorpoFunzione; return TipoRestituito;\}} (consentono di restituire solo 1 valore) (lista argomenti è una sequenza di coppie (tipo nomeargomento)).
+Per invocare nel \texttt{main} la funzione faccio \texttt{NomeFunzione (lista argomenti)}, la lista argomenti non è la stessa della funzione quando va creata, ma una lista di espressioni (variabili, costanti, invocazione di funzione) di tipo corrispondente a quelle della definizione (i valori scritti vengono usati per la funzione, con l’esempio di \texttt{int min} e \texttt{max} dovrei mettere nel \texttt{main} \texttt{NomeFunzione (2, 10)}, per cui c’è una porzione di memoria chiamato record di attivazione, riferito alla funzione, creato una volta invocata la funzione, in questo caso il 2 sarà copiato in \texttt{min} e il 10 in \texttt{max}).
+Prima del \texttt{main} devo mettere \texttt{TipoDato NomeFunzione (lista argomenti)} (in questo caso la lista argomenti non deve essere dettagliata al massimo, posso anche mettere solo il tipo).
+Quando termina l’invocazione di una funzione il suo record di attivazione viene distrutto.
+Nelle funzioni ci sono parametri formali (si usano per definire la funzione e sono gli argomenti, gli argomenti sono parametri formali in input, dopo il \texttt{return} nella funzione c’è il parametro formale in output) e parametri attuali (usati quando invoco la funzione nel \texttt{main}) che danno valore ai parametri formali, l’invocazione copia il valore da attuale a formale.
+[Nel \texttt{main} e nella funzione le variabili occupano porzioni di memoria completamente diverse, c’è uno spazio per il \texttt{main} e uno per la funzione]. Per cui ogni sottoprogramma può usare solo le variabili dichiarate al suo interno che sono variabili dette locali che nascono e muoiono con la vita del sottoprogramma (le variabili non dichiarate all’interno del sottoprogramma si possono usare se passate come argomenti).
+
+\subsection{Gestione della memoria di una funzione}
+Una variabile nel record di attivazione di una funzione non può modificare una variabile in un altro record di attivazione (per esempio quello del \texttt{main}), il record di attivazione è chiamato anche ambiente di una funzione.
+Ci sono procedure che richiamano loro stesse (ricorsione), possono esistere più istanze di una funzione addormentate in attesa della terminazione della gemella per riprendere l’esecuzione (in questo caso il compilatore non può sapere quanto spazio allocare per le variabili del programma). Per la ricorsione non esiste un solo record di attivazione ma si usa il sistema dello stack, modalità LIFO (last in first out).
+Le variabili delle funzioni sono chiamate variabili automatiche, dichiarate nelle funzioni e nei blocchi di istruzione, create quando il flusso di esecuzione entra nel campo di visibilità e distrutte una volta uscite da tale ambito; di volta in volta sono allocate in celle differenti e non conservano i valori prodotti da precedenti esecuzioni della funzione o del blocco.
+I parametri possono essere built-in o user defined; i valori dei parametri attuali non sono modificabili tra le istruzioni del chiamante, i sottoprogrammi lavorano su copie dei parametri attuali (tranne gli array apparentemente).
+I \texttt{return} possono essere built-in o user defined ma non possono essere array (ma può essere una \texttt{struct} contenente un array) e può essere un puntatore a qualsiasi tipo.
+Passaggio per riferimento: il puntatore ci da la possibilità di passare da un record di attivazione a un altro.
+Funzioni ed array: gli array si possono passare anche in ingresso a una funzione.
+
+\subsection{Punto sulla situazione}
+Non si possono restituire array (non è assegnabile), il modo per farlo è sfruttare il fatto che il passaggio a parametri (nella chiamata) viene passato l’indirizzo, in realtà scrivo direttamente nel vettore del \texttt{main} attraverso puntatori.
+Quando passo vettori di interi devo passare anche la lunghezza, altrimenti non posso sapere quanti elementi sono significativi.
+Con le \texttt{struct} non ci sono questi problemi, le \texttt{struct} vengono passate in input e restituite dalle funzioni come i normali tipi base; questo perché è possibile fare assegnamenti tra \texttt{struct} (vale anche se la \texttt{struct} ha un array tra i propri campi), ed è sempre possibile utilizzare il passaggio per riferimento anche con i tipi strutturati.
+
+\subsection{Ricorsione}
+La ricorsione è la versione informatica dell’induzione matematica (si parte dal caso base e si dimostra il generale).
+Nella ricorsione, a differenza dell’iterazione in cui ho un ciclo, divido il caso in due: ho un caso base semplice del quale conosco già la risposta, e un passo induttivo che tende al caso base e definisco la soluzione del problema in termini di operazioni semplici e della soluzione dello stesso caso base su dati “più piccoli” (per tali dati e per ipotesi il problema si considera risolto).
+Versione ricorsiva del fattoriale: (con una funzione).
+\texttt{int fatt (int n)  \{if (n==0) return 1; else return n*fatt(n-1);\}}.
+Un programma ricorsivo è un programma che continua a richiamare se stessa. (l’ultima funzione chiamata è la prima che termina, LIFO). In ogni chiamata ricorsiva si è in ambienti distinti.
+La ricorsione non va avanti all’infinito se mi avvicino sempre di più al caso base, per cui una ricorsione è giusta se avviene questo.
+
+\subsection{Memoria dinamica}
+Le variabili sono dichiarate nelle funzioni e create e distrutte con la creazione e distruzione della funzione che le contiene. Ci sono anche variabili statiche: variabili globali (dichiarate fuori dal \texttt{main} e viste da tutte le funzioni con lo stesso nome, per cui se in una funzione ne aumento il valore lo aumento per tutte le funzioni) o locali al \texttt{main} dichiarate con \texttt{static}.
+Le variabili, qualsiasi tipo, possono essere allocate dal compilatore immediatamente in memoria, a prescindere dal programma o la funzione.
+Esistono le variabili dinamiche, allocate e deallocate nell’atto di creazione esplicita, vengono create a runtime tramite un comando, queste non possono avere un nome ma conosco il loro indirizzo, per cui ci accedo tramite puntatori; queste variabili non vengono create nello stack (delle altre variabili e ordinato), ma nello heap (mucchio) riservato esclusivamente per queste variabili, nello heap le variabili possono essere raggiunte solo tramite puntatori (o catene di essi che partono da variabili nello stack).
+Sono definite nella libreria \texttt{stdlib.h}, queste variabili vanno create e distrutte esplicitamente tramite le funzioni: \texttt{malloc} (allocarle) e \texttt{free} (rilasciarle), non c’è nessun vincolo per il quale queste funzioni devono stare all’interno della stessa funzione.
+La \texttt{malloc}: prototipo: \texttt{void *malloc (int);}. Restituisce un puntatore generico, non si può sapere a priori cosa si vuole puntare). Come parametro riceve il numero di byte da allocare (di solito si usa la \texttt{sizeof} per la dimensione dei dati da allocare). Se non c’è più memoria disponibile restituisce \texttt{NULL}.
+Allocazione: \texttt{typedef … TipoDato; typedef TipoDato *PTD; PTD ref; … ref=(PTD) malloc(sizeof(TipoDato));} (\texttt{PTD} davanti alla \texttt{malloc} non dovrebbe essere obbligatorio); l’unico modo per accedere alla variabile presente nello heap è con la dereferenziazione (\texttt{*ref} in questo caso).
+La creazione di variabili nello heap avviene dove si trova posto, ogni volta che rieseguo il programma cambia.
+Bisogna cancellare le variabili dello heap, che se no si satura, lo si fa attraverso \texttt{free} (libera la memoria allocata dalla \texttt{malloc}):
+Prototipo: \texttt{void free (void*); come argomento ha un puntatore (nel caso dell’esempio avrei: free (ref); poiché ref è già un puntatore), non serve specificare la dimensione}.
+La \texttt{malloc} alloca spazio, non tipi.
+Quando faccio \texttt{free} non elimino il puntatore ma solo il valore a cui puntava, bisogna stare attenti perchè si continua lo stesso a puntare a una casella nello heap, ma senza avere valori, per cui è bene assegnare a ciò che libero il valore \texttt{NULL}.
+
+\subsection{Liste}
+E’ una struttura dati dinamica la cui logica è non creare strutture sovradimensionate, ma creare elementi divisi in due parti: una parte è l’informazione utile (e ne contengono solo una) e l’altra è il puntatore all’elemento successivo, altro elemento sempre diviso in due (o punta a un altro o a nulla); è tutta nello Heap, e perchè si possano usare deve esistere una variabile nello stack che punta a uno di questi elementi.
+Mi permettono di inserire un elemento in mezzo a due che già esistono senza tanti problemi.
+Non c’è più l'aritmetica dei puntatori, gli indirizzi non sono contigui.
+Come si costruiscono: sono fatte da cose che contengono un puntatore (il primo è un puntatore a parte).
+Sintassi: \texttt{typedef struct EL \{TipoElemento info; struct EL *prox; \} ElemLista; typedef ElemLista *ListaDiElem;} (è il puntatore iniziale).
+A questo punto posso creare una lista concatenata di oggetti; la lista dev’essere mantenuta ordinata.
+Le liste possono essere di tanti tipi, noi cominciamo con le liste concatenate: cominciano con un puntatore al primo e terminano con un puntatore nullo e si attraversano solo in un verso. Esistono le concatenate circolari (l’ultimo elemento punta al primo), le doppiamente concatenate (ogni elemento punta al successivo e al precedente), e le doppiamente concatenate circolari.
+Liste concatenate:
+Sintassi: \texttt{typedef struct EL \{TipoElemento info; struct EL *prox; \} ElemLista; typedef ElemLista *ListaDiElem;} (è il puntatore iniziale) \texttt{ListaDiElem ptr; ptr=malloc(sizeof(ElemLista)); (*ptr).info=10; (*ptr).prox=NULL;}
+Tutte le operazioni che sono possibili fare su una lista possono essere messe in funzioni che hanno come parametro un puntatore al primo elemento della lista, le funzioni che modificano la lista sono scritte in modo che restituiscano un puntatore al primo elemento della lista.
+
+\subsection{Alberi}
+E’ una struttura dati dinamica composta da nodi che si puntano tra di loro, non si ha solo un puntatore all’elemento successivo, ma due, è un nodo da cui spuntano due rami. Per gli alberi la ricorsione è necessaria. Nomenclatura “rubata” dall’albero genealogico.
+Sintassi: \texttt{typedef struct Nodo \{int dato; struct Nodo *left; struct Nodo *right;\} nodo; typedef nodo *tree;}
+Foglia: nodo che non ha neanche un successore (entrambi i nodi puntano a NULL).
+\newpage
+\section{Basi di Dati}
+
+\subsection{Introduzione}
+I linguaggi visti finora solo linguaggi interattivi, si dice alla macchina che fare; esistono linguaggi dichiarativi: descrivono il risultato senza dire nei dettagli alla macchina che fare, sono permesse meno cose del C ma con istruzioni molto più semplici.
+Per questi programmi esiste una sezione di dati unica e tanti programmi che possono usarli, esiste quindi un DBMS (Data Base Management System), che permette ai vari programmi di accedere ai dati senza creare problemi, bisogna consentire l’accesso ai dati in maniera concorrente e corretta; bisogna essere in grado di condividere i dati (senza replicazione), devono essere robusti (senza falle nel sistema, operazioni memorizzate e fisse), i dati devono mantenere la qualità (integrità e correttezza), l’efficienza e ovviamente la privacy; bisogna avere un meccanismo che riesce ad avere più copie fisiche che sembrino una sola copia senza replicazione.
+Nel corso ci limitiamo a estrarre le informazioni dai dati, non a gestirli.
+Come sono fatti i Data Base: c’è una tabella, le colonne sono gli attributi e le righe sono la istanza; per costruire questo modello si usa il modello relazionale: le colonne e le righe si vedono in linea con la teoria degli insiemi.
+\begin{itemize}
+    \item [Grado]: numero di domini;
+    \item [Cardinalità]: numero di n-uple (t-uple);
+    \item [Attributo]: nome dato al dominio in una relazione.
+\end{itemize}
+Una t-upla sarà la riga e l’attributo la colonna.
+Se non si conosce un dato per svariate ragioni si mette \texttt{NULL}, che appartiene a tutti i domini e indica che non si sa l’informazione (sconosciuto, inesistente, senza informazione). Con il \texttt{NULL} non si può fare alcun tipo di confronto. Esistono dei vincoli nei dati, ma ci pensa il Data Base, noi ci aspettiamo che i dati siano giusti a priori.
+Per cui i dati sono corretti e sappiamo che esiste un sottoinsieme degli attributi che ha le proprietà di unicità e minimalità:
+\begin{itemize}
+    \item \textbf{Unicità}: non esistono due t-uple con due chiavi uguali;
+    \item \textbf{Minimalità}: sottraendo un qualsiasi attributo alla chiave si perde unicità;
+\end{itemize}
+Per cui il set di attributi che garantisce unicità e minimalità si chiama chiave, noi lavoreremo pensando che la chiave è affidabile (se il sottoinsieme non è minimale si parla di super chiave).
+Ci sono dei vincoli di chiave esterna: vincolo gli elementi di una tabella con una chiave di un’altra tabella (se voglio i nomi e cognome dei 30 in un esame devo prenderli da un’altra tabella con un’altra chiave).
+
+\subsection{SQL}
+E’ un linguaggio dichiarativo, in questo caso serve per estrarre dati da queste tabelle:
+Prima operazione: PROIEZIONE (da una tabella prende delle certe colonne): prima parola chiave. from (ci dice la tabella da cui prendere), select (la colonna da prendere); per cui la sintassi sarà: \texttt{select NOME, CCS (in questo caso) from TABELLA STUDENTE.} (se scrivo \texttt{select *}, mi fa vedere tutte le colonne). Per rimuovere i duplicati uso \texttt{distinct}: \texttt{select distinct CCS}.
+Si parla di SELEZIONE quando voglio selezionare righe:
+\texttt{SELECT * from STUDENTE WHERE Nome=’alex’} (oppure 6 se fosse stato un intero senza apici) (gli diciamo quale t-upla selezionare).
+Le convenzioni sono: stringhe con apici, numeri come numeri, esistono stringhe con caratteri numerici: \texttt{‘1234’} (in questi casi si guardano le cifre quando sono più grandi: \texttt{‘1234’<’56’}); esistono operazioni booleane: \texttt{and} (\texttt{p1 and p2}), \texttt{or} (\texttt{p1 or p2}), \texttt{not} (\texttt{p1}); ovviamente ci sono anche i comparatori. (\texttt{=, <>, <, <=, >, >=})
+Mentre valuta una certa tupla non valuta le altre, nella clausola WHERE si scrivono clausole che vedono una riga per volta per decidere se tenerla o no.
+Ogni confronto con \texttt{NULL} finisce male, per cui si usa \texttt{is} (\texttt{WHERE CCS is (not) NULL}) (\texttt{is} si usa solo per i controlli con il \texttt{NULL}).
+Se nel \texttt{FROM} metto due tabelle con la virgola in mezzo il sistema fa una grande tabella con i dati di tutte e due con il prodotto cartesiano; nel \texttt{WHERE} se ho una tabella mischiata devo mettere il punto tra nome tabella e nome attributo.
+Si può usare \texttt{JOIN} e \texttt{ON} al posto di \texttt{where} (\texttt{from studente JOIN esame ON studente.matr=esame.matr}), con il \texttt{JOIN} si possono accoppiare tuple di tabelle diverse e poterci scrivere duplicati sopra. (il \texttt{join} mette insieme più colonne sulla stessa riga).
+Variabili in SQL: posso scrivere \texttt{SELECT S1.nome, S1. matr FROM studente S1, studente S2} (\texttt{S1} e \texttt{S2} sono delle denominazioni che do io) \texttt{WHERE S1.nome=S2.nome AND S1.matr <> S2.matr} (cerca gli omonimi).
+ORDINAMENTO: \texttt{order by}: ci mostra il risultato in ordine di quella cosa (di solito crescente se metto \texttt{DES} è decrescente).
+Funzioni aggregate: non si mostra tutto il risultato della query (tutte le righe che soddisfano una condizione), ma mostriamo qualcosa che viene calcolato su queste righe tramite le funzioni aggregate: \texttt{count} (cardinalità), \texttt{sum} (sommatoria), \texttt{max}, \texttt{min}, \texttt{avg};
+Farei: \texttt{select count (distinct (oppure all) CodCli) from Ordine} (estrarre il numero di valori distinti di \texttt{CodCli} per tutte le righe di ordine).
+Se faccio: \texttt{select max (importo) as MaxImp from ordine} (dico al programma di chiamare la tabella derivata con il massimo valore MaxImp); la funzione \texttt{max} ci da solo il valore del massimo, ma non sappiamo niente sulla riga dal quale viene.
+Consegue il divieto assoluto di mettere nella stessa query un aggregato e un qualcosa che non lo è.
+Query con raggruppamento, \texttt{group by}, il raggruppamento funziona che creo dei gruppi in base a una caratteristica (se non c’è un gruppo con una caratteristica quello non esiste, non è che esiste ma è vuoto). c’è anche la clausola \texttt{having} che seleziona i gruppi, permette di esprimere predicati sul gruppetto, predicati su aggregati; le tuple vengono viste divise a gruppetti.
+Se c’è la clausola \texttt{group by} posso mettere aggregati e attributo nel \texttt{select} (gli attributi solo per cui è raggruppato). posso mettere nella \texttt{select} solo attributi ‘vittime’ di raggruppamento.
+Esiste il doppio raggruppamento.
+Non esiste l’aggregato di aggregato!!!
+E’ possibile confrontare il valore di una riga con il risultato di una query: query nidificate:
+\texttt{select distinct codord from dettaglio where codprod = any (select codprod from prodotto where prezzo > 100)} (\texttt{= any} è almeno 1) in questo caso se nell’altra query c’è almeno un risultato uguale a \texttt{codprod} è vera la condizione (si può usare anche \texttt{all}, \texttt{not in} è equivalente a \texttt{<> all}).
+Esiste anche l’\texttt{in} che è equivalente di \texttt{=any}.
+Costruttore di tupla: \texttt{select * from Persona P where (Nome,Cognome) in (select Nome, Cognome from Persona P1 where P1.CodFisc <> P.CodFisc)}.
+Viste: offrono la visione di celle “virtuali” per fare query complessi, posso scrivere qualunque query con davanti \texttt{create view} che crea una tabella virtuale con il risultato della query e posso usarla come fosse una tabella:
+\texttt{create view OrdiniPrincipali as select * from Ordine where Importo > 10000}
+Query: \texttt{select CodCli from OrdiniPrincipali}
+OPPURE: \texttt{select CodCli from (select * from Ordine where Importo > 10000)}
+\newpage
+\section{File}
+
+\subsection{File}
+Sono strutture dati persistenti e solitamente memorizzate su dischi (si usano all’interno dei programmi); realizzano la persistenza dei dati (del contenuto delle variabili).
+Tramite i file, i dati possono sopravvivere al termine dell'esecuzione del programma (i file sono usati anche per memorizzare i programmi!)
+Quando se ne chiede l'esecuzione, il sistema operativo copia il programma (eseguibile, conservato in un file) in memoria centrale e inizia a eseguirlo.
+I file sono strutture di dati sequenziali (si leggono e si scrivono gli elementi al loro interno in sequenza) e possono essere binari o di testo: binari significa che sono una sequenza di byte senza alcuna interpretazioni; mentre di testo significa che sono una sequenza interpretata.
+Le periferiche sono tutte viste come file (mouse, tastiera…).
+Ogni file aperto da un prog. ha un descrittore, risiede nella tabella dei file aperti, una delle strutture dati che il S.O. associa ai programmi in esecuzione; Il descrittore memorizza:
+la modalità d'uso (read, write), la posizione corrente all'interno del file, l'indicatore di eventuale errore, l'indicatore di eof(end-of-file).
+L'apertura del file restituisce un descrittore, per la precisione, un puntatore a un descrittore.
+Come si dichiara e si apre un file: puntatore al descrittore: \texttt{FILE *fp;} (\texttt{FILE} è un nuovo tipo).
+Apertura del file: \texttt{FILE *fopen (char *NomeFile, char *modalità);} (crea nello heap la struttura dati che parla con il sistema operativo e crea un canale di comunicazione con il file).
+NomeFile da il percorso e apre o crea il file, mentre la modalità ci dice la modalità di apertura: \texttt{“r”}, lettura in modalità testo, posizionamento inizio file (read); \texttt{“w”}, scrittura modalità testo (write), posizionamento inizio file; \texttt{“a”}, scrittura modalità testo (append) posizionamento fine file.
+La scrittura di file è permessa solo su file aperti in \texttt{“w”} o \texttt{“a”}, \texttt{“r”} solo lettura.
+Modalità binarie: \texttt{“rb”} o \texttt{“wb”}, \texttt{“ab”}.
+Non è possibile aprire più volte lo stesso file nella stessa modalità.
+Modalità di accesso (anche insieme): \texttt{“r+”} apre un file in lettura/scrittura in modalità testo posizionandosi all'inizio; \texttt{“w+”} scrittura/lettura modalità testo posizionamento inizio; \texttt{“a+”} scrittura/lettura modalità testo posizionamento fine.
+Per accorgersi dell’errore di apertura di un file si può fare \texttt{fp=fopen(...); if(fp==NULL) \{ printf ("errore"); exit(1); \}}
+Per scrivere nei file si usa la \texttt{fprintf}, identica alla \texttt{printf}, ma con un parametro in più: \texttt{FILE *}: \texttt{fprintf (FILE *fp, "stringa",...);}
+Esempio: \texttt{fprintf (fp, "Nome: \%s \textbackslash n Età: \%d", Nome, Età);} (scrive su fp).
+E’ presente la funzione \texttt{fputc}, prototipo: \texttt{int fputc (char, FILE *fp);}, restituisce un intero che sarà uguale al \texttt{char} scritto se scrittura avviene correttamente, mentre \texttt{EOF} in caso contrario; si scrive \texttt{int fputc ('a', fp);} (corrisponde a \texttt{putc}; \texttt{putchar} è equivalente di \texttt{fputc}, stampa \texttt{stdout}).
+Ci sono le \texttt{fputs} che scrivono stringhe, prototipo: \texttt{int fputs (char *, FILE *);}, restituisce un intero minore di 0 se non scrive correttamente, scrittura su file se non c’è nessun errore; \texttt{int fputs ("ciao a tutti\textbackslash n", fp);}, corrispondente \texttt{puts} che stampa su \texttt{stdout}.
+La scrittura di file binari usa la \texttt{fwrite}, per qualsiasi tipo: \texttt{size\_t fwrite (const void *, size\_t size, size\_t count, FILE *fp);} (\texttt{void} è puntatore generico) (scrive in binario, \texttt{size} è il numero di byte di un elemento, \texttt{count} è numero di elementi da scrivere, prototipo \texttt{fwrite (Buffer, sizeof (int), 1, fp)}).
+Chiudere un file: \texttt{fclose (FILE *fp);}, importante per il S.O. (salva le scritture che il S.O. ha tenuto in buffering) (\texttt{fclose} elimina la struttura dati nello heap).
+Per leggere un file di testo uso la \texttt{fscanf}, uguale alla \texttt{scanf}, la sintassi è la stessa ma con un puntatore \texttt{FILE}:
+\texttt{fscanf (FILE *fp, "stringa" ,...);} (uguale alla \texttt{scanf}): \texttt{fscanf (fp, "\%d \%c \%f", \&a, \&b, \&c);}.
+Può anche leggere da file binari tramite la \texttt{fread}: \texttt{size\_t fread (void *, size\_t size, size\_t count, FILE *fp);}.
+Per leggere il carattere del file di testo uso la \texttt{fgetc}, sintassi: \texttt{int fgetc (FILE *fp);} (rest. il carattere letto o \texttt{EOF}); si scrive \texttt{c=fgetc (fp);} (equivalente di \texttt{getc}).
+Per leggere le stringhe si usa \texttt{fgets}, sintassi: \texttt{char *fgets (char *, int n, FILE *);} (\texttt{n} è max n-1 caratteri, \texttt{fgets} legge e termina col primo \texttt{\textbackslash n}); \texttt{fgets (Buffer, 80, fp);}.
+E’ possibile verificare se la \texttt{fscanf} ha letto correttamente i caratteri o se ha letto un \texttt{EOF}: \texttt{if (fscanf (...)!=EOF) \{...\}}.
+Si può accorgere del \texttt{EOF} attraverso la funzione \texttt{feof}, prototipo: \texttt{int feof (FILE *);} (\texttt{feof} restituisce 1 se \texttt{fp} ha letto il \texttt{EOF}, 0 altrimenti).
+Si può accorgere di eventuali errori nella lettura con la \texttt{ferror}, prototipo: \texttt{int ferror (FILE *);} (\texttt{ferror} restituisce 1 se c’è un errore durante la lettura/scrittura di \texttt{fp}, 0 altrimenti).
+La funzione \texttt{fseek} permette di spostare il punto corrente di lettura/scrittura di \texttt{fp} (\texttt{fseek} è come un indicatore):
+Prototipo: \texttt{int fseek (FILE *fp, long int offset, int whence);} (\texttt{fp} è il file, \texttt{offset} è la posizione dalla quale partire e \texttt{whence} è la posizione da cui partire), (\texttt{whence} può essere \texttt{SEEK\_SET}, \texttt{SEEK\_CUR}, \texttt{SEEK\_END}). Restituisce \texttt{0} se correttamente eseguita, diverso da \texttt{0} altrimenti. L’indicatore di posizione corrente può essere letto tramite \texttt{ftell}, prototipo: \texttt{long int ftell (FILE *);}, restituisce la distanza in byte dal \texttt{whence}.
+
+\end{document}
